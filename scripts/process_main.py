@@ -49,8 +49,10 @@ script_callbacks.on_ui_settings(on_ui_settings)
 
 def save(im: Image.Image):
     file_decoration = f'{datetime.now()}'
+    file_extension = opts.samples_format
+    filename = f'{file_decoration}.{file_extension}'
 
-    log_text(f"Sending image '{file_decoration}' to Immich!")
+    log_text(f"Sending image '{filename}' to Immich!")
 
     headers = {
         'Accept': 'application/json',
@@ -66,11 +68,9 @@ def save(im: Image.Image):
     }
 
     item = io.BytesIO()
-    im.save(item, opts.samples_format)
+    im.save(item, file_extension)
     item.seek(0)
     buffered_reader = io.BufferedReader(item)
-
-    filename = f'{file_decoration}.{opts.samples_format}'
 
     files = {
         ('assetData', (filename, buffered_reader, 'application/octet-stream'))
