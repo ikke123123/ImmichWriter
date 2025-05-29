@@ -10,10 +10,10 @@ from modules.processing import Processed
 from modules.shared import opts, OptionInfo
 from modules import script_callbacks, scripts_postprocessing
 
-immich_sender = "Immich Sender"
+immich_writer = "Immich Writer"
 
 def log_text(text):
-    print(f" [-] Immich Uploader: {text}")
+    print(f" [-] Immich Writer: {text}")
 
 def on_ui_settings():
     section = ('immich', "Immich")
@@ -61,7 +61,7 @@ def save(im: Image.Image):
 
     data = {
         'deviceAssetId': file_decoration,
-        'deviceId': 'stable-diffussion:immich-sender-extension',
+        'deviceId': 'stable-diffussion:immich-writer-extension',
         'fileCreatedAt': datetime.now(),
         'fileModifiedAt': datetime.now(),
         'isFavorite': 'false',
@@ -84,7 +84,7 @@ def save(im: Image.Image):
 class PPImage(Protocol):
     image: Image.Image
 
-class ImmichSender(scripts.Script):
+class ImmichWriter(scripts.Script):
     def __init__(self) -> None:
         super().__init__()
 
@@ -92,7 +92,7 @@ class ImmichSender(scripts.Script):
         return f"{self.__class__.__name__})"
 
     def title(self):
-        return immich_sender
+        return immich_writer
 
     def show(self, _):
         return scripts.AlwaysVisible
@@ -100,7 +100,7 @@ class ImmichSender(scripts.Script):
     def ui(self, _):
         immich_send_default = opts.immich_send_default
 
-        with gr.Accordion(immich_sender, open=False):
+        with gr.Accordion(immich_writer, open=False):
             with gr.Row():
                 enabled = gr.Checkbox(
                     immich_send_default,
@@ -113,23 +113,23 @@ class ImmichSender(scripts.Script):
             for i in range(len(pp.images)):
                 save(pp.images[i])
 
-class ScriptPostprocessingImmichSender(scripts_postprocessing.ScriptPostprocessing):
-    name = immich_sender
+class ScriptPostprocessingImmichWriter(scripts_postprocessing.ScriptPostprocessing):
+    name = immich_writer
     order = 99999999 # We want this value to be last in the UI
 
     def ui(self):
             immich_send_default = opts.immich_send_default
 
-            with gr.Accordion(immich_sender, open=False):
+            with gr.Accordion(immich_writer, open=False):
                 enabled = gr.Checkbox(
                     immich_send_default,
                     label="Enable Upload"
                 )
 
-            return { "immich_sender_enabled" : enabled }
+            return { "immich_send_enabled" : enabled }
 
-    def postprocess(self, images, immich_sender_enabled):
-        if (immich_sender_enabled):
+    def postprocess(self, images, immich_send_enabled):
+        if (immich_send_enabled):
             for i in range(len(images)):
                 save(images[i])
 
