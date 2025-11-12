@@ -9,11 +9,9 @@ from datetime import datetime
 from modules.processing import Processed
 from modules.shared import opts, OptionInfo
 from modules import script_callbacks, scripts_postprocessing
+from installer import log
 
 immich_writer = "Immich Writer"
-
-def log_text(text):
-    print(f" [-] Immich Writer: {text}")
 
 def on_ui_settings():
     section = ('immich', "Immich")
@@ -49,10 +47,10 @@ script_callbacks.on_ui_settings(on_ui_settings)
 
 def save(im: Image.Image):
     file_decoration = f'{datetime.now()}'
-    file_extension = opts.samples_format
+    file_extension = "png"
     filename = f'{file_decoration}.{file_extension}'
 
-    log_text(f"Sending image '{filename}' to Immich!")
+    log.info(f"Sending image '{filename}' to Immich!")
 
     headers = {
         'Accept': 'application/json',
@@ -79,7 +77,7 @@ def save(im: Image.Image):
     response = requests.post(
         f'https://{opts.immich_url}/api/assets', headers=headers, data=data, files=files)
 
-    log_text(f"statuscode={response.status_code} file='{filename}' response={response.json()}")
+    log.info(f"statuscode={response.status_code} file='{filename}' response={response.json()}")
 
 class PPImage(Protocol):
     image: Image.Image
@@ -98,7 +96,11 @@ class ImmichWriter(scripts.Script):
         return scripts.AlwaysVisible
 
     def ui(self, _):
-        immich_send_default = opts.immich_send_default
+        try:
+            immich_send_default = opts.immich_send_default
+        except AttributeError:
+            log.error(f"opts.immich_send_default is unset, changing setting to False!")
+            immich_send_default = opts.immich_send_default = False
 
         with gr.Accordion(immich_writer, open=False):
             with gr.Row():
